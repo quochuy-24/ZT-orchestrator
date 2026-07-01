@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(chmod +x /Users/user/python/project/nac/orchestrator/test_clients.py)",
+      "Bash(find /Users/user/python/project/nac/orchestrator -type d -name \"__pycache__\" -exec rm -rf {} +)"
+    ]
+  }
+}

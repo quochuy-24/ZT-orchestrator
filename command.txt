@@ -1,0 +1,62 @@
+curl -k -X GET -u admin:Doipassxaichung0-  "https://192.168.29.103:9200/netflow-*/_search" -H 'Content-Type: application/json' -d'
+{
+  "size": 0,
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "range": {
+            "@timestamp": {
+              "gte": "now-5m",
+              "lte": "now"
+            }
+          }
+        },
+        {
+          "bool": {
+            "should": [
+              { "match": { "netflow.ipv4_src_addr": "10.0.20.12" } },
+              { "match": { "netflow.ipv4_dst_addr": "10.0.20.12" } }
+            ],
+            "minimum_should_match": 1
+          }
+        }
+      ]
+    }
+  },
+  "aggs": {
+    "group_by_ip": {
+      "terms": {
+        "field": "netflow.ipv4_dst_addr.keyword", 
+        "size": 20,
+        "order": { "tong_bytes_ip": "desc" }
+      },
+      "aggs": {
+        "tong_bytes_ip": { "sum": { "field": "netflow.in_bytes" } },
+        "group_by_port": {
+          "terms": {
+            "field": "netflow.l4_dst_port",
+            "size": 10,
+            "order": { "tong_bytes_port": "desc" }
+          },
+          "aggs": {
+            "tong_bytes_port": { "sum": { "field": "netflow.in_bytes" } },
+            "group_by_proto": {
+              "terms": {
+                "field": "netflow.protocol",
+                "size": 5,
+                "order": { "tong_bytes_proto": "desc" }
+              },
+              "aggs": {
+                "tong_bytes_proto": { "sum": { "field": "netflow.in_bytes" } }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}'
+
+output
+{"took":568,"timed_out":false,"_shards":{"total":17,"successful":17,"skipped":0,"failed":0},"hits":{"total":{"value":31,"relation":"eq"},"max_score":null,"hits":[]},"aggregations":{"group_by_ip":{"doc_count_error_upper_bound":0,"sum_other_doc_count":0,"buckets":[{"key":"192.168.29.103","doc_count":10,"group_by_port":{"doc_count_error_upper_bound":0,"sum_other_doc_count":0,"buckets":[{"key":1514,"doc_count":10,"group_by_proto":{"doc_count_error_upper_bound":0,"sum_other_doc_count":0,"buckets":[{"key":6,"doc_count":10,"tong_bytes_proto":{"value":18144.0}}]},"tong_bytes_port":{"value":18144.0}}]},"tong_bytes_ip":{"value":18144.0}},{"key":"10.0.20.12","doc_count":20,"group_by_port":{"doc_count_error_upper_bound":0,"sum_other_doc_count":0,"buckets":[{"key":2181,"doc_count":19,"group_by_proto":{"doc_count_error_upper_bound":0,"sum_other_doc_count":0,"buckets":[{"key":6,"doc_count":19,"tong_bytes_proto":{"value":4439.0}}]},"tong_bytes_port":{"value":4439.0}},{"key":123,"doc_count":1,"group_by_proto":{"doc_count_error_upper_bound":0,"sum_other_doc_count":0,"buckets":[{"key":17,"doc_count":1,"tong_bytes_proto":{"value":148.0}}]},"tong_bytes_port":{"value":148.0}}]},"tong_bytes_ip":{"value":4587.0}},{"key":"192.168.29.17","doc_count":1,"group_by_port":{"doc_count_error_upper_bound":0,"sum_other_doc_count":0,"buckets":[{"key":123,"doc_count":1,"group_by_proto":{"doc_count_error_upper_bound":0,"sum_other_doc_count":0,"buckets":[{"key":17,"doc_count":1,"tong_bytes_proto":{"value":148.0}}]},"tong_bytes_port":{"value":148.0}}]},"tong_bytes_ip":{"value":148.0}}]}}}

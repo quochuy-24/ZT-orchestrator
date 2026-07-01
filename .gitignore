@@ -1,0 +1,35 @@
+venv/
+.venv/
+env/
+.env/
+
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+.env
+.env.local
+# Local environment
+.env
+
+# Runtime data
+profiles.db
+profiles.db-shm
+profiles.db-wal
+profiles.json
+*.log
+logs/
+
+# Python cache
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# OS/editor noise
+.DS_Store
+.vscode/

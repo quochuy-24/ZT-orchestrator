@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sơ đồ Kiến trúc Thuần HTML/CSS</title>
+  <style>
+    :root {
+      --color-source-bg: #e3f2fd;
+      --color-source-border: #1e88e5;
+      --color-control-bg: #f3e5f5;
+      --color-control-border: #8e24aa;
+      --color-data-bg: #e8f5e9;
+      --color-data-border: #43a047;
+      --color-monitor-bg: #fff3e0;
+      --color-monitor-border: #fb8c00;
+      --text-color: #2c3e50;
+    }
+
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f6f9;
+      color: var(--text-color);
+      margin: 0;
+      padding: 30px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    h2 {
+      margin-bottom: 5px;
+      color: #1a252f;
+    }
+
+    p.subtitle {
+      margin-bottom: 30px;
+      color: #7f8c8d;
+      font-style: italic;
+    }
+
+    /* Khung chứa tổng thể sơ đồ */
+    .architecture-container {
+      display: grid;
+      grid-template-columns: 3fr 1fr;
+      gap: 20px;
+      max-width: 1100px;
+      width: 100%;
+      background: #ffffff;
+      padding: 30px;
+      border-radius: 12px;
+      box-shadow: 0 6px 18px rgba(0, 0, 0, 0.06);
+    }
+
+    /* Cột chính chứa luồng Zero Trust chính */
+    .main-pipeline {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+
+    /* Định dạng chung cho các Khối subgraph bọc ngoài */
+    .subgraph {
+      width: 100%;
+      border: 2px dashed #bdc3c7;
+      border-radius: 8px;
+      padding: 15px;
+      box-sizing: border-box;
+      position: relative;
+    }
+
+    .subgraph-title {
+      font-size: 12px;
+      font-weight: bold;
+      color: #7f8c8d;
+      margin-bottom: 15px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+
+    .nodes-row {
+      display: flex;
+      justify-content: space-around;
+      gap: 15px;
+      width: 100%;
+    }
+
+    /* Định dạng cho từng ô chức năng con (Nodes) */
+    .node {
+      flex: 1;
+      padding: 15px 10px;
+      border-radius: 6px;
+      text-align: center;
+      font-size: 13px;
+      font-weight: 6px;
+      box-shadow: 0 3px 6px rgba(0, 0, 0, 0.05);
+      line-height: 1.4;
+      border: 2px solid;
+    }
+
+    .node span {
+      display: block;
+      font-size: 11px;
+      color: #666;
+      margin-top: 4px;
+      font-weight: normal;
+    }
+
+    /* Áp màu sắc đặc trưng cho từng phân hệ */
+    .subgraph.sources {
+      border-color: var(--color-source-border);
+    }
+
+    .node.source-node {
+      background: var(--color-source-bg);
+      border-color: var(--color-source-border);
+    }
+
+    .subgraph.controls {
+      border-color: var(--color-control-border);
+    }
+
+    .node.control-node {
+      background: var(--color-control-bg);
+      border-color: var(--color-control-border);
+      font-weight: bold;
+    }
+
+    .subgraph.datas {
+      border-color: var(--color-data-border);
+    }
+
+    .node.data-node {
+      background: var(--color-data-bg);
+      border-color: var(--color-data-border);
+    }
+
+    .subgraph.monitors {
+      height: 100%;
+      border-color: var(--color-monitor-border);
+      display: flex;
+      flex-direction: column;
+    }
+
+    .node.monitor-node {
+      background: var(--color-monitor-bg);
+      border-color: var(--color-monitor-border);
+      height: 80%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+    }
+
+    /* Định dạng các mũi tên luồng dữ liệu bằng CSS */
+    .arrow-v {
+      font-size: 24px;
+      color: #95a5a6;
+      margin: 10px 0;
+      font-weight: bold;
+      user-select: none;
+    }
+
+    /* Luồng tương tác ngang dọc mô tả bằng text nhỏ bên cạnh mũi tên */
+    .flow-label {
+      font-size: 11px;
+      color: #7f8c8d;
+      margin-top: -5px;
+      margin-bottom: 5px;
+    }
+
+    .side-flows {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      font-size: 13px;
+      color: #7f8c8d;
+      text-align: center;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h2>KIẾN TRÚC LOGIC TỔNG THỂ HỆ THỐNG ZERO TRUST</h2>
+  <p class="subtitle">Mặt phẳng điều khiển (Control Plane) & Mặt phẳng dữ liệu (Data Plane) thuần chức năng</p>
+
+  <div class="architecture-container">
+
+    <div class="main-pipeline">
+
+      <div class="subgraph sources">
+        <div class="subgraph-title">1. Nguồn dữ liệu & Ngữ cảnh (Data Sources)</div>
+        <div class="nodes-row">
+          <div class="node source-node"><b>Nguồn Định danh (IdP)</b><span>Xác thực danh tính & nhóm vai trò</span></div>
+          <div class="node source-node"><b>Cảm biến Điểm cuối</b><span>Đo lường Posture (Antivirus/SCA)</span></div>
+          <div class="node source-node"><b>Ngữ cảnh Kết nối Mạng</b><span>Thu thập MAC/IP & Vị trí Port L2</span></div>
+        </div>
+      </div>
+
+      <div class="arrow-v">↓</div>
+      <div class="flow-label">Đẩy dữ liệu Telemetry & Xác thực dữ liệu ngữ cảnh</div>
+
+      <div class="subgraph controls">
+        <div class="subgraph-title">2. Điểm quyết định chính sách (Policy Decision Point - PDP)</div>
+        <div class="nodes-row">
+          <div class="node control-node">Động cơ Chính sách<br />(Policy Engine - PE)<span>Tính toán điểm rủi ro thực
+              tế</span></div>
+          <div class="node control-node">Phân hệ PAM / JIT<br />(Privileged Access)<span>Cấp quyền đặc quyền có thời
+              hạn</span></div>
+          <div class="node control-node">Quản trị Chính sách<br />(Policy Admin - PA)<span>Điều phối và phiên dịch mã
+              lệnh</span></div>
+        </div>
+      </div>
+
+      <div class="arrow-v">↓</div>
+      <div class="flow-label">Gọi API & Bắn bản tin RADIUS CoA truyền lệnh xuống hạ tầng</div>
+
+      <div class="subgraph datas">
+        <div class="subgraph-title">3. Điểm thực thi chính sách (Policy Enforcement Point - PEP)</div>
+        <div class="nodes-row">
+          <div class="node data-node"><b>Kiểm soát Truy cập L2</b><span>Cách ly mạng / Thay đổi VLAN kết nối</span>
+          </div>
+          <div class="node data-node"><b>Tường lửa Ranh giới</b><span>Đóng/Mở Port động theo phiên JIT</span></div>
+          <div class="node data-node"><b>Kiểm soát Dữ liệu L7</b><span>Bóc tách HTTPS & Động cơ DLP Proxy</span></div>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="side-flows">
+      <div style="font-size: 20px; margin-bottom: 10px;">⤏</div>
+      <div class="subgraph monitors">
+        <div class="subgraph-title">4. Vòng lặp phản hồi</div>
+        <div class="node monitor-node">
+          <b>Trung tâm Phân tích An ninh & SIEM</b>
+          <span style="margin: 10px 0; color: #d35400;">[ Giám sát liên tục 24/7 ]</span>
+          <span>- Thu thập log từ PEP L2/L4/L7<br />
+            - Phát hiện bất thường rò rỉ dữ liệu<br />
+            - Phối hợp với PE để tự động tước quyền (Revocation)
+          </span>
+        </div>
+      </div>
+      <div style="font-size: 20px; margin-top: 10px;">⤎</div>
+    </div>
+
+  </div>
+
+</body>
+
+</html>

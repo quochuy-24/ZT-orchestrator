@@ -1,0 +1,367 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <title>Kiến trúc chức năng NAC Zero Trust</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #f0f2f5;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 40px 24px;
+      font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    h1 {
+      font-size: 14px;
+      font-weight: 600;
+      color: #2d3748;
+      margin-bottom: 4px;
+      text-align: center;
+    }
+
+    p.sub {
+      font-size: 11px;
+      color: #718096;
+      margin-bottom: 20px;
+      text-align: center;
+    }
+
+    .wrap {
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 2px 20px rgba(0, 0, 0, 0.09);
+      padding: 28px 28px 20px;
+      width: 100%;
+      max-width: 960px;
+    }
+
+    svg {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .nd rect {
+      transition: filter .15s;
+      cursor: pointer;
+    }
+
+    .nd:hover rect {
+      filter: brightness(0.9);
+    }
+
+    .legend {
+      display: flex;
+      gap: 28px;
+      flex-wrap: wrap;
+      margin-top: 18px;
+      padding-top: 14px;
+      border-top: 1px solid #e2e8f0;
+      justify-content: center;
+    }
+
+    .li {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 11px;
+      color: #4a5568;
+    }
+
+    .ls {
+      width: 30px;
+      height: 2px;
+      border-radius: 1px;
+    }
+
+    .ld {
+      width: 30px;
+      height: 0;
+      border-top: 2px dashed;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Hình 2.x — Kiến trúc chức năng hệ thống NAC Zero Trust</h1>
+  <p class="sub">Phân tách Control Plane / Data Plane theo chuẩn NIST SP 800-207</p>
+
+  <div class="wrap">
+    <svg viewBox="0 0 920 680" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6"
+          orient="auto-start-reverse">
+          <path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </marker>
+        <marker id="ar2" viewBox="0 0 10 10" refX="2" refY="5" markerWidth="6" markerHeight="6"
+          orient="auto-start-reverse">
+          <path d="M8 1L2 5L8 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round"
+            stroke-linejoin="round" />
+        </marker>
+      </defs>
+
+      <!-- ╔══════════════════════════════════════════════════════════╗
+     ║  CONTROL PLANE                                           ║
+     ╚══════════════════════════════════════════════════════════╝ -->
+      <rect x="14" y="14" width="892" height="296" rx="14" fill="#EBF4FF" stroke="#3182CE" stroke-width="1.5"
+        stroke-dasharray="7 4" />
+      <text x="30" y="36" font-size="11" font-weight="700" fill="#2B6CB0" font-family="'Segoe UI',Arial,sans-serif"
+        letter-spacing="0.4">
+        MẶT PHẲNG ĐIỀU KHIỂN (CONTROL PLANE)
+      </text>
+
+      <!-- ── ① Nguồn dữ liệu ── -->
+      <rect x="32" y="52" width="168" height="232" rx="10" fill="#FAF5FF" stroke="#805AD5" stroke-width="1"
+        stroke-dasharray="5 3" />
+      <text x="116" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#553C9A"
+        font-family="'Segoe UI',Arial,sans-serif">① NGUỒN DỮ LIỆU</text>
+
+      <g class="nd">
+        <rect x="46" y="80" width="140" height="56" rx="8" fill="#6B46C1" stroke="#553C9A" stroke-width="0.5" />
+        <text x="116" y="104" text-anchor="middle" font-size="12" font-weight="600" fill="#fff"
+          font-family="'Segoe UI',Arial,sans-serif">IdP / AD Server</text>
+        <text x="116" y="122" text-anchor="middle" font-size="10" fill="#D6BCFA"
+          font-family="'Segoe UI',Arial,sans-serif">Định danh &amp; vai trò</text>
+      </g>
+
+      <g class="nd">
+        <rect x="46" y="160" width="140" height="56" rx="8" fill="#6B46C1" stroke="#553C9A" stroke-width="0.5" />
+        <text x="116" y="184" text-anchor="middle" font-size="12" font-weight="600" fill="#fff"
+          font-family="'Segoe UI',Arial,sans-serif">EDR Agent</text>
+        <text x="116" y="202" text-anchor="middle" font-size="10" fill="#D6BCFA"
+          font-family="'Segoe UI',Arial,sans-serif">Posture / sức khoẻ</text>
+      </g>
+
+      <!-- ── ② PDP ── -->
+      <rect x="228" y="52" width="228" height="232" rx="10" fill="#E6FFFA" stroke="#2C7A7B" stroke-width="1"
+        stroke-dasharray="5 3" />
+      <text x="342" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#234E52"
+        font-family="'Segoe UI',Arial,sans-serif">② PDP – ĐIỂM QUYẾT ĐỊNH CHÍNH SÁCH</text>
+
+      <g class="nd">
+        <rect x="242" y="82" width="200" height="58" rx="8" fill="#2C7A7B" stroke="#234E52" stroke-width="0.5" />
+        <text x="342" y="106" text-anchor="middle" font-size="12" font-weight="600" fill="#fff"
+          font-family="'Segoe UI',Arial,sans-serif">Động cơ chính sách</text>
+        <text x="342" y="126" text-anchor="middle" font-size="10" fill="#B2F5EA"
+          font-family="'Segoe UI',Arial,sans-serif">Policy Engine &amp; Risk Scoring</text>
+      </g>
+
+      <!-- double arrow -->
+      <line x1="342" y1="140" x2="342" y2="162" stroke="#2C7A7B" stroke-width="1.5" marker-end="url(#ar)"
+        marker-start="url(#ar2)" />
+
+      <g class="nd">
+        <rect x="242" y="162" width="200" height="58" rx="8" fill="#2C7A7B" stroke="#234E52" stroke-width="0.5" />
+        <text x="342" y="186" text-anchor="middle" font-size="12" font-weight="600" fill="#fff"
+          font-family="'Segoe UI',Arial,sans-serif">Quản trị chính sách</text>
+        <text x="342" y="206" text-anchor="middle" font-size="10" fill="#B2F5EA"
+          font-family="'Segoe UI',Arial,sans-serif">JIT Portal / API Broker</text>
+      </g>
+
+      <!-- ── ④ SIEM ── -->
+      <rect x="492" y="52" width="398" height="232" rx="10" fill="#F0FFF4" stroke="#276749" stroke-width="1"
+        stroke-dasharray="5 3" />
+      <text x="691" y="70" text-anchor="middle" font-size="10" font-weight="700" fill="#22543D"
+        font-family="'Segoe UI',Arial,sans-serif">④ GIÁM SÁT LIÊN TỤC (SIEM / CARTA)</text>
+
+      <g class="nd">
+        <rect x="510" y="82" width="168" height="58" rx="8" fill="#276749" stroke="#22543D" stroke-width="0.5" />
+        <text x="594" y="106" text-anchor="middle" font-size="12" font-weight="600" fill="#fff"
+          font-family="'Segoe UI',Arial,sans-serif">Wazuh SIEM</text>
+        <text x="594" y="126" text-anchor="middle" font-size="10" fill="#9AE6B4"
+          font-family="'Segoe UI',Arial,sans-serif">Alert &amp; correlation</text>
+      </g>
+
+      <g class="nd">
+        <rect x="706" y="82" width="168" height="58" rx="8" fill="#276749" stroke="#22543D" stroke-width="0.5" />
+        <text x="790" y="106" text-anchor="middle" font-size="12" font-weight="600" fill="#fff"
+          font-family="'Segoe UI',Arial,sans-serif">Logstash</text>
+        <text x="790" y="126" text-anchor="middle" font-size="10" fill="#9AE6B4"
+          font-family="'Segoe UI',Arial,sans-serif">Enrichment / NetFlow</text>
+      </g>
+
+      <!-- Logstash -> Wazuh -->
+      <line x1="706" y1="111" x2="678" y2="111" stroke="#276749" stroke-width="1.2" marker-end="url(#ar)" />
+
+      <!-- SIEM -> Policy Engine (risk feedback) — nằm trong Control Plane -->
+      <path d="M510 102 L444 102" fill="none" stroke="#276749" stroke-width="1.4" stroke-dasharray="5 3"
+        marker-end="url(#ar)" />
+      <text x="477" y="96" text-anchor="middle" font-size="9.5" fill="#276749"
+        font-family="'Segoe UI',Arial,sans-serif">Risk feedback</text>
+
+      <!-- IdP -> Policy Engine -->
+      <path d="M186 108 L242 108" fill="none" stroke="#805AD5" stroke-width="1.4" marker-end="url(#ar)" />
+      <text x="214" y="102" text-anchor="middle" font-size="9.5" fill="#6B46C1"
+        font-family="'Segoe UI',Arial,sans-serif">định danh</text>
+
+      <!-- EDR -> Policy Engine (L-bend) -->
+      <path d="M186 188 L214 188 L214 196 L242 196" fill="none" stroke="#805AD5" stroke-width="1.4"
+        marker-end="url(#ar)" />
+      <text x="214" y="182" text-anchor="middle" font-size="9.5" fill="#6B46C1"
+        font-family="'Segoe UI',Arial,sans-serif">posture</text>
+
+      <!-- ╔══════════════════════════════════════════════════════════╗
+     ║  DATA PLANE                                              ║
+     ╚══════════════════════════════════════════════════════════╝ -->
+      <!-- khoảng cách = 60px từ Control Plane (y=310 thay vì 318) -->
+      <rect x="14" y="352" width="892" height="312" rx="14" fill="#FFFAF0" stroke="#C05621" stroke-width="1.5"
+        stroke-dasharray="7 4" />
+      <!-- Tiêu đề đặt ở góc trên-trái, KHÔNG bị PEP đè -->
+      <text x="30" y="374" font-size="11" font-weight="700" fill="#9C4221" font-family="'Segoe UI',Arial,sans-serif"
+        letter-spacing="0.4">
+        MẶT PHẲNG DỮ LIỆU (DATA PLANE)
+      </text>
+
+      <!-- ── Thiết bị người dùng ── -->
+      <g class="nd">
+        <rect x="32" y="392" width="154" height="90" rx="10" fill="#718096" stroke="#4A5568" stroke-width="0.5" />
+        <text x="109" y="427" text-anchor="middle" font-size="12" font-weight="600" fill="#fff"
+          font-family="'Segoe UI',Arial,sans-serif">Thiết bị người dùng</text>
+        <text x="109" y="447" text-anchor="middle" font-size="10" fill="#CBD5E0"
+          font-family="'Segoe UI',Arial,sans-serif">End-users</text>
+        <text x="109" y="465" text-anchor="middle" font-size="9.5" fill="#A0AEC0"
+          font-family="'Segoe UI',Arial,sans-serif">Win10 / Ubuntu</text>
+      </g>
+
+      <!-- ── ③ PEP ── -->
+      <!-- Đặt xuống thấp hơn để không đè tiêu đề Data Plane -->
+      <rect x="218" y="376" width="262" height="272" rx="10" fill="#FEFCBF" stroke="#D69E2E" stroke-width="1"
+        stroke-dasharray="5 3" />
+      <text x="349" y="396" text-anchor="middle" font-size="10" font-weight="700" fill="#744210"
+        font-family="'Segoe UI',Arial,sans-serif">③ PEP – ĐIỂM THỰC THI CHÍNH SÁCH</text>
+
+      <g class="nd">
+        <rect x="232" y="408" width="234" height="62" rx="8" fill="#D69E2E" stroke="#B7791F" stroke-width="0.5" />
+        <text x="349" y="434" text-anchor="middle" font-size="12" font-weight="600" fill="#fff"
+          font-family="'Segoe UI',Arial,sans-serif">Thực thi tiền kết nối</text>
+        <text x="349" y="454" text-anchor="middle" font-size="10" fill="#FEFCBF"
+          font-family="'Segoe UI',Arial,sans-serif">NAC / Switch L2 (802.1X, CoA)</text>
+      </g>
+
+      <!-- L2 -> L3 arrow -->
+      <line x1="349" y1="470" x2="349" y2="494" stroke="#B7791F" stroke-width="1.5" marker-end="url(#ar)" />
+
+      <g class="nd">
+        <rect x="232" y="494" width="234" height="62" rx="8" fill="#D69E2E" stroke="#B7791F" stroke-width="0.5" />
+        <text x="349" y="518" text-anchor="middle" font-size="12" font-weight="600" fill="#fff"
+          font-family="'Segoe UI',Arial,sans-serif">Thực thi phân luồng &amp; DLP</text>
+        <text x="349" y="538" text-anchor="middle" font-size="10" fill="#FEFCBF"
+          font-family="'Segoe UI',Arial,sans-serif">Stateful Firewall VyOS + Squid Proxy</text>
+      </g>
+
+      <!-- ── Destinations ── -->
+      <g class="nd">
+        <rect x="530" y="408" width="360" height="62" rx="8" fill="#C53030" stroke="#9B2C2C" stroke-width="0.5" />
+        <text x="710" y="432" text-anchor="middle" font-size="12" font-weight="600" fill="#fff"
+          font-family="'Segoe UI',Arial,sans-serif">Tài nguyên nội bộ</text>
+        <text x="710" y="452" text-anchor="middle" font-size="10" fill="#FEB2B2"
+          font-family="'Segoe UI',Arial,sans-serif">Server Farm, Admin Zone (VLAN 40 / 10)</text>
+      </g>
+
+      <g class="nd">
+        <rect x="530" y="494" width="360" height="62" rx="8" fill="#C53030" stroke="#9B2C2C" stroke-width="0.5" />
+        <text x="710" y="518" text-anchor="middle" font-size="12" font-weight="600" fill="#fff"
+          font-family="'Segoe UI',Arial,sans-serif">Mạng Internet</text>
+        <text x="710" y="538" text-anchor="middle" font-size="10" fill="#FEB2B2"
+          font-family="'Segoe UI',Arial,sans-serif">Qua Squid Proxy + DLP (ICAP)</text>
+      </g>
+
+      <!-- User -> PEP L2 -->
+      <line x1="186" y1="437" x2="232" y2="437" stroke="#4A5568" stroke-width="2" marker-end="url(#ar)" />
+      <text x="209" y="430" text-anchor="middle" font-size="9.5" fill="#4A5568"
+        font-family="'Segoe UI',Arial,sans-serif">truy cập</text>
+
+      <!-- PEP L3 -> Internal (JIT bypass) — đường xiên ngắn -->
+      <path d="M466 515 L530 439" fill="none" stroke="#D69E2E" stroke-width="1.8" marker-end="url(#ar)" />
+      <text x="510" y="468" text-anchor="middle" font-size="9.5" fill="#744210"
+        font-family="'Segoe UI',Arial,sans-serif">JIT bypass</text>
+
+      <!-- PEP L3 -> Internet (DLP scan) — đường ngang thẳng -->
+      <line x1="466" y1="525" x2="530" y2="525" stroke="#D69E2E" stroke-width="1.8" marker-end="url(#ar)" />
+      <text x="498" y="517" text-anchor="middle" font-size="9.5" fill="#744210"
+        font-family="'Segoe UI',Arial,sans-serif">DLP scan</text>
+
+      <!-- ╔══════════════════════════════════════════════════════════╗
+     ║  TRỤC LOG BÊN PHẢI — 1 đường dọc chung cho mọi log      ║
+     ╚══════════════════════════════════════════════════════════╝ -->
+      <!-- Trục dọc chính: từ y=620 (đáy Data Plane) lên y=150 (giữa SIEM) -->
+      <line x1="906" y1="620" x2="906" y2="150" stroke="#276749" stroke-width="1" stroke-dasharray="4 3" />
+
+      <!-- Nhánh 1: PEP L2 (y=439) -> trục -->
+      <path d="M466 439 L906 439" fill="none" stroke="#276749" stroke-width="1" stroke-dasharray="4 3" />
+
+      <!-- Nhánh 2: PEP L3 (y=525) -> trục -->
+      <path d="M466 556 L906 556" fill="none" stroke="#276749" stroke-width="1" stroke-dasharray="4 3" />
+
+      <!-- Nhánh 3: User endpoint logs (y=437) -> trục -->
+      <path d="M186 460 L200 460 L200 620 L906 620" fill="none" stroke="#276749" stroke-width="0.8"
+        stroke-dasharray="3 3" />
+
+      <!-- Trục dọc nối lên Wazuh (mũi tên vào box Wazuh ở y=140) -->
+      <line x1="906" y1="150" x2="906" y2="140" stroke="#276749" stroke-width="1" stroke-dasharray="4 3"
+        marker-end="url(#ar)" />
+      <!-- Rẽ ngang sang Wazuh -->
+      <path d="M906 140 L678 140" fill="none" stroke="#276749" stroke-width="1" stroke-dasharray="4 3"
+        marker-end="url(#ar)" />
+
+      <!-- Label trục log -->
+      <text x="910" y="390" font-size="9" fill="#276749" font-family="'Segoe UI',Arial,sans-serif"
+        transform="rotate(90 910 390)">Nhật ký / telemetry → SIEM</text>
+
+      <!-- ╔══════════════════════════════════════════════════════════╗
+     ║  API từ Control Plane xuống Data Plane                   ║
+     ╚══════════════════════════════════════════════════════════╝ -->
+      <!-- Đường API chung: từ PDP Admin (y=220) xuống y=340 (khoảng giữa 2 plane) -->
+      <!-- Nhánh CoA/VLAN -> PEP L2 -->
+      <path d="M290 220 L290 340 L290 408" fill="none" stroke="#2C7A7B" stroke-width="1.5" stroke-dasharray="6 3"
+        marker-end="url(#ar)" />
+      <text x="270" y="330" text-anchor="middle" font-size="9.5" fill="#2C7A7B"
+        font-family="'Segoe UI',Arial,sans-serif">CoA / VLAN</text>
+
+      <!-- Nhánh JIT rule -> PEP L3 -->
+      <path d="M394 220 L394 340 L394 494" fill="none" stroke="#2C7A7B" stroke-width="1.5" stroke-dasharray="6 3"
+        marker-end="url(#ar)" />
+      <text x="414" y="330" text-anchor="middle" font-size="9.5" fill="#2C7A7B"
+        font-family="'Segoe UI',Arial,sans-serif">JIT rule</text>
+
+      <!-- Nhãn restrict/isolate (nằm trong khoảng trống giữa 2 plane) -->
+      <text x="290" y="348" text-anchor="middle" font-size="9" fill="#C05621" font-style="italic"
+        font-family="'Segoe UI',Arial,sans-serif">restrict / isolate</text>
+
+    </svg>
+
+    <!-- Legend -->
+    <div class="legend">
+      <div class="li">
+        <div class="ls" style="background:#4A5568;"></div>
+        <span>Luồng dữ liệu người dùng</span>
+      </div>
+      <div class="li">
+        <div class="ld" style="border-color:#2C7A7B;"></div>
+        <span>API / lệnh điều khiển (Control → Data)</span>
+      </div>
+      <div class="li">
+        <div class="ld" style="border-color:#276749;"></div>
+        <span>Nhật ký / telemetry (→ SIEM)</span>
+      </div>
+      <div class="li">
+        <div class="ls" style="background:#D69E2E;"></div>
+        <span>Luồng thực thi trong Data Plane</span>
+      </div>
+    </div>
+  </div>
+
+</body>
+
+</html>

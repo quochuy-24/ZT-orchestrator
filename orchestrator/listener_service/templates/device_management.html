@@ -1,0 +1,1465 @@
+<!DOCTYPE html>
+<html lang="vi">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NAC Device Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+    rel="stylesheet">
+  <style>
+    :root {
+      --bg: #080e18;
+      --surface: #0c1422;
+      --panel: #101c2e;
+      --panel-2: #152236;
+      --border: #1c2f47;
+      --border-hi: #2a4669;
+      --text: #c8d8ef;
+      --muted: #4e6a8a;
+      --dim: #2e4560;
+      --white: #eaf1fc;
+      --green: #29d68c;
+      --yellow: #e8b84b;
+      --red: #e0445a;
+      --blue: #4a8fff;
+      --blue-dim: rgba(74, 143, 255, .07);
+      --mono: 'IBM Plex Mono', monospace;
+      --sans: 'IBM Plex Sans', sans-serif;
+      --r: 4px;
+    }
+
+    *,
+    *::before,
+    *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: var(--sans);
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      font-size: 13px;
+      line-height: 1.5;
+    }
+
+    /* ── HEADER ── */
+    header {
+      height: 52px;
+      display: flex;
+      align-items: center;
+      padding: 0 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      gap: 0;
+      flex-shrink: 0;
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding-right: 20px;
+      border-right: 1px solid var(--border);
+    }
+
+    .brand-logo svg {
+      display: block;
+      width: 20px;
+      height: 20px;
+    }
+
+    .brand-name {
+      font-family: var(--mono);
+      font-size: 13px;
+      font-weight: 500;
+      letter-spacing: .12em;
+      color: var(--white);
+    }
+
+    .brand-tag {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 1px 5px;
+      border-radius: 2px;
+    }
+
+    .header-status {
+      display: flex;
+      align-items: center;
+      gap: 18px;
+      padding: 0 20px;
+    }
+
+    .svc-dot {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+    }
+
+    .svc-dot::before {
+      content: '';
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--green);
+      box-shadow: 0 0 5px var(--green);
+      animation: blink 3s ease-in-out infinite;
+    }
+
+    @keyframes blink {
+
+      0%,
+      100% {
+        opacity: 1;
+      }
+
+      50% {
+        opacity: .3;
+      }
+    }
+
+    .header-time {
+      margin-left: auto;
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--dim);
+    }
+
+    /* ── TOOLBAR ── */
+    .toolbar {
+      height: 48px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 0 24px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+      flex-shrink: 0;
+    }
+
+    .search-wrap {
+      position: relative;
+      width: 280px;
+    }
+
+    .search-wrap svg {
+      position: absolute;
+      left: 9px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      pointer-events: none;
+      width: 13px;
+      height: 13px;
+    }
+
+    input[type=text],
+    select {
+      font-family: var(--sans);
+      font-size: 12.5px;
+      background: var(--surface);
+      color: var(--text);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 6px 10px;
+      outline: none;
+      transition: border-color .12s;
+      width: 100%;
+    }
+
+    input[type=text] {
+      padding-left: 30px;
+    }
+
+    input[type=text]::placeholder {
+      color: var(--dim);
+    }
+
+    input[type=text]:focus,
+    select:focus {
+      border-color: var(--border-hi);
+    }
+
+    select {
+      cursor: pointer;
+      appearance: none;
+      padding-right: 26px;
+      width: auto;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='9' height='5'%3E%3Cpath d='M0 0l4.5 5L9 0z' fill='%234e6a8a'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 8px center;
+    }
+
+    .sep {
+      width: 1px;
+      height: 22px;
+      background: var(--border);
+    }
+
+    .btn {
+      font-family: var(--sans);
+      font-size: 12.5px;
+      font-weight: 500;
+      border-radius: var(--r);
+      padding: 6px 14px;
+      border: 1px solid;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all .12s;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--blue);
+      color: #fff;
+      border-color: var(--blue);
+    }
+
+    .btn-primary:hover {
+      filter: brightness(1.12);
+    }
+
+    .btn-primary:active {
+      filter: brightness(.9);
+    }
+
+    .btn-primary.loading {
+      opacity: .65;
+      pointer-events: none;
+    }
+
+    .spin-el {
+      display: none;
+      width: 11px;
+      height: 11px;
+      border: 1.5px solid rgba(255, 255, 255, .25);
+      border-top-color: #fff;
+      border-radius: 50%;
+    }
+
+    .btn-primary.loading .spin-el {
+      display: block;
+      animation: spin .55s linear infinite;
+    }
+
+    .btn-primary.loading .refresh-ico {
+      display: none;
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .toolbar-stats {
+      margin-left: auto;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .stat {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .stat strong {
+      font-weight: 500;
+    }
+
+    .stat.c-green strong {
+      color: var(--green);
+    }
+
+    .stat.c-red strong {
+      color: var(--red);
+    }
+
+    .stat.c-yellow strong {
+      color: var(--yellow);
+    }
+
+    .stat.c-white strong {
+      color: var(--white);
+    }
+
+    .updated {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--dim);
+      padding-left: 12px;
+      border-left: 1px solid var(--border);
+    }
+
+    /* ── LAYOUT ── */
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 1fr minmax(550px, 1.2fr);
+      overflow: hidden;
+    }
+
+    .pane {
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      border-right: 1px solid var(--border);
+    }
+
+    .pane:last-child {
+      border-right: none;
+    }
+
+    .pane-header {
+      height: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+      flex-shrink: 0;
+    }
+
+    .pane-title {
+      font-family: var(--mono);
+      font-size: 11px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .pane-count {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--dim);
+    }
+
+    .pane-body {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px;
+    }
+
+    .pane-body::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    .pane-body::-webkit-scrollbar-thumb {
+      background: var(--border);
+    }
+
+    /* ── TOPOLOGY ── */
+    .topo-group {
+      margin-bottom: 20px;
+    }
+
+    .topo-label {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--dim);
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .node-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .node {
+      background: var(--panel);
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 10px 12px;
+      min-width: 110px;
+      cursor: pointer;
+      transition: border-color .12s, background .12s;
+    }
+
+    .node:hover {
+      border-color: var(--border-hi);
+      background: var(--panel-2);
+    }
+
+    .node-name {
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--white);
+      margin-bottom: 3px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .node-info {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      line-height: 1.6;
+    }
+
+    .node-state {
+      margin-top: 6px;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .dot {
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .dot-green {
+      background: var(--green);
+    }
+
+    .dot-yellow {
+      background: var(--yellow);
+    }
+
+    .dot-red {
+      background: var(--red);
+    }
+
+    .dot-gray {
+      background: var(--dim);
+    }
+
+    .s-COMPLIANT {
+      border-color: rgba(41, 214, 140, .25);
+    }
+
+    .s-COMPLIANT:hover {
+      border-color: rgba(41, 214, 140, .5);
+    }
+
+    .s-NON_COMPLIANT,
+    .s-EVALUATING {
+      border-color: rgba(232, 184, 75, .22);
+    }
+
+    .s-NON_COMPLIANT:hover,
+    .s-EVALUATING:hover {
+      border-color: rgba(232, 184, 75, .5);
+    }
+
+    .s-ISOLATED {
+      border-color: rgba(224, 68, 90, .25);
+    }
+
+    .s-ISOLATED:hover {
+      border-color: rgba(224, 68, 90, .5);
+    }
+
+    /* ── TABLE ── */
+    .table-wrap {
+      overflow-x: auto;
+      padding-bottom: 10px;
+      /* Tránh thanh cuộn đè lên hàng cuối */
+    }
+
+    /* Thêm thanh cuộn ngang custom */
+    .table-wrap::-webkit-scrollbar {
+      height: 8px;
+    }
+
+    .table-wrap::-webkit-scrollbar-track {
+      background: var(--surface);
+    }
+
+    .table-wrap::-webkit-scrollbar-thumb {
+      background: var(--dim);
+      border-radius: 4px;
+    }
+
+    .table-wrap::-webkit-scrollbar-thumb:hover {
+      background: var(--muted);
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+
+    thead th {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 9px 14px;
+      background: var(--panel);
+      border-bottom: 1px solid var(--border);
+      text-align: left;
+      white-space: nowrap;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    tbody td {
+      padding: 10px 14px;
+      border-bottom: 1px solid rgba(28, 47, 71, .6);
+      vertical-align: middle;
+    }
+
+    tbody tr {
+      cursor: pointer;
+      transition: background .08s;
+    }
+
+    tbody tr:hover {
+      background: var(--blue-dim);
+    }
+
+    tbody tr:last-child td {
+      border-bottom: none;
+    }
+
+    .td-main {
+      font-weight: 600;
+      color: var(--white);
+      font-size: 12.5px;
+    }
+
+    .td-sub {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .td-mono {
+      font-family: var(--mono);
+      font-size: 11.5px;
+      color: var(--text);
+      letter-spacing: 0.5px;
+    }
+
+    .os-icon {
+      font-size: 14px;
+      margin-right: 6px;
+    }
+
+    .os-text {
+      font-size: 11.5px;
+      color: var(--text);
+    }
+
+    .badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      font-family: var(--mono);
+      font-size: 10px;
+      font-weight: 500;
+      padding: 3px 7px;
+      border-radius: 2px;
+      border: 1px solid;
+      letter-spacing: .04em;
+    }
+
+    .b-COMPLIANT {
+      color: var(--green);
+      border-color: rgba(41, 214, 140, .3);
+      background: rgba(41, 214, 140, .06);
+    }
+
+    .b-NON_COMPLIANT {
+      color: var(--yellow);
+      border-color: rgba(232, 184, 75, .3);
+      background: rgba(232, 184, 75, .06);
+    }
+
+    .b-EVALUATING {
+      color: var(--yellow);
+      border-color: rgba(232, 184, 75, .3);
+      background: rgba(232, 184, 75, .06);
+    }
+
+    .b-ISOLATED {
+      color: var(--red);
+      border-color: rgba(224, 68, 90, .3);
+      background: rgba(224, 68, 90, .06);
+    }
+
+    .b-LOGGED_OFF {
+      color: var(--dim);
+      border-color: var(--border);
+      background: transparent;
+    }
+
+    .risk-row {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .risk-track {
+      width: 40px;
+      height: 3px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .risk-fill {
+      height: 100%;
+      border-radius: 2px;
+    }
+
+    .rl-LOW .risk-fill {
+      background: var(--green);
+    }
+
+    .rl-MEDIUM .risk-fill {
+      background: var(--yellow);
+    }
+
+    .rl-HIGH .risk-fill,
+    .rl-CRITICAL .risk-fill {
+      background: var(--red);
+    }
+
+    .risk-val {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+    }
+
+    .empty {
+      padding: 36px 20px;
+      text-align: center;
+      color: var(--dim);
+      font-family: var(--mono);
+      font-size: 12px;
+    }
+
+    .err-box {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--red);
+      background: rgba(224, 68, 90, .06);
+      border: 1px solid rgba(224, 68, 90, .2);
+      border-radius: var(--r);
+      padding: 10px 12px;
+    }
+
+    /* ── DRAWER ── */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, .55);
+      z-index: 200;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s;
+    }
+
+    .overlay.open {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .drawer {
+      position: fixed;
+      right: 0;
+      top: 0;
+      width: 500px;
+      max-width: 100vw;
+      height: 100vh;
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      transform: translateX(100%);
+      transition: transform .22s cubic-bezier(.16, 1, .3, 1);
+      z-index: 201;
+      display: flex;
+      flex-direction: column;
+    }
+
+    .drawer.open {
+      transform: translateX(0);
+    }
+
+    .dh {
+      border-bottom: 1px solid var(--border);
+      padding: 16px 20px;
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 12px;
+      flex-shrink: 0;
+      background: var(--panel);
+    }
+
+    .dh-left {
+      flex: 1;
+      min-width: 0;
+    }
+
+    .dh-name {
+      font-size: 15px;
+      font-weight: 600;
+      color: var(--white);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .dh-mac {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      margin-top: 3px;
+    }
+
+    .dh-state {
+      margin-top: 8px;
+    }
+
+    .close-btn {
+      background: none;
+      border: 1px solid var(--border);
+      color: var(--muted);
+      cursor: pointer;
+      width: 28px;
+      height: 28px;
+      border-radius: var(--r);
+      font-size: 14px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      flex-shrink: 0;
+      transition: all .12s;
+    }
+
+    .close-btn:hover {
+      border-color: var(--red);
+      color: var(--red);
+    }
+
+    .action-bar {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      padding: 10px 20px;
+      border-bottom: 1px solid var(--border);
+      background: var(--panel);
+      flex-wrap: wrap;
+      flex-shrink: 0;
+    }
+
+    .act {
+      font-family: var(--sans);
+      font-size: 12px;
+      font-weight: 500;
+      border-radius: var(--r);
+      padding: 5px 12px;
+      border: 1px solid;
+      cursor: pointer;
+      transition: all .12s;
+    }
+
+    .act:active {
+      transform: scale(.96);
+    }
+
+    .act-release {
+      color: var(--green);
+      border-color: rgba(41, 214, 140, .3);
+      background: rgba(41, 214, 140, .05);
+    }
+
+    .act-release:hover {
+      background: rgba(41, 214, 140, .12);
+      border-color: var(--green);
+    }
+
+    .act-restrict {
+      color: var(--yellow);
+      border-color: rgba(232, 184, 75, .3);
+      background: rgba(232, 184, 75, .05);
+    }
+
+    .act-restrict:hover {
+      background: rgba(232, 184, 75, .12);
+      border-color: var(--yellow);
+    }
+
+    .act-isolate {
+      color: var(--red);
+      border-color: rgba(224, 68, 90, .3);
+      background: rgba(224, 68, 90, .05);
+    }
+
+    .act-isolate:hover {
+      background: rgba(224, 68, 90, .12);
+      border-color: var(--red);
+    }
+
+    .act-netflow {
+      color: var(--blue);
+      border-color: rgba(74, 143, 255, .3);
+      background: rgba(74, 143, 255, .05);
+    }
+
+    .act-netflow:hover {
+      background: rgba(74, 143, 255, .12);
+      border-color: var(--blue);
+    }
+
+    #actionStatus {
+      font-family: var(--mono);
+      font-size: 11px;
+      padding: 4px 9px;
+      border-radius: var(--r);
+      border: 1px solid transparent;
+      display: none;
+      align-items: center;
+      gap: 6px;
+    }
+
+    #actionStatus.pending {
+      display: flex;
+      color: var(--muted);
+      border-color: var(--border);
+      background: var(--panel-2);
+    }
+
+    #actionStatus.success {
+      display: flex;
+      color: var(--green);
+      border-color: rgba(41, 214, 140, .3);
+      background: rgba(41, 214, 140, .06);
+    }
+
+    #actionStatus.error {
+      display: flex;
+      color: var(--red);
+      border-color: rgba(224, 68, 90, .3);
+      background: rgba(224, 68, 90, .06);
+    }
+
+    .status-spin {
+      width: 10px;
+      height: 10px;
+      border: 1.5px solid rgba(78, 106, 138, .4);
+      border-top-color: var(--muted);
+      border-radius: 50%;
+      animation: spin .5s linear infinite;
+      flex-shrink: 0;
+    }
+
+    .d-scroll {
+      flex: 1;
+      overflow-y: auto;
+      padding: 16px 20px;
+    }
+
+    .d-scroll::-webkit-scrollbar {
+      width: 3px;
+    }
+
+    .d-scroll::-webkit-scrollbar-thumb {
+      background: var(--border);
+    }
+
+    .d-section {
+      margin-bottom: 22px;
+    }
+
+    .d-section-title {
+      font-family: var(--mono);
+      font-size: 10px;
+      letter-spacing: .1em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding-bottom: 8px;
+      margin-bottom: 10px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .kv-grid {
+      display: grid;
+      grid-template-columns: 130px 1fr;
+      row-gap: 7px;
+    }
+
+    .kv-key {
+      font-family: var(--mono);
+      font-size: 11px;
+      color: var(--muted);
+      padding-top: 1px;
+    }
+
+    .kv-val {
+      font-size: 12.5px;
+      color: var(--text);
+      word-break: break-all;
+    }
+
+    .kv-val.mono {
+      font-family: var(--mono);
+      font-size: 11px;
+    }
+
+    .audit-card {
+      border: 1px solid var(--border);
+      border-radius: var(--r);
+      padding: 10px 12px;
+      margin-bottom: 7px;
+      background: var(--panel);
+      transition: border-color .12s;
+    }
+
+    .audit-card:hover {
+      border-color: var(--border-hi);
+    }
+
+    .audit-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 4px;
+    }
+
+    .audit-action {
+      font-weight: 600;
+      font-size: 12.5px;
+      color: var(--white);
+    }
+
+    .audit-src {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--muted);
+      border: 1px solid var(--border);
+      padding: 1px 5px;
+      border-radius: 2px;
+    }
+
+    .audit-meta {
+      font-family: var(--mono);
+      font-size: 10px;
+      color: var(--dim);
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin-bottom: 4px;
+    }
+
+    .audit-reason {
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .netflow-table th {
+      background: var(--panel-2);
+    }
+
+    @media (max-width: 1100px) {
+      main {
+        grid-template-columns: 1fr;
+        overflow: visible;
+      }
+
+      .pane {
+        border-right: none;
+        border-bottom: 1px solid var(--border);
+        max-height: 50vh;
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <div class="brand">
+      <div class="brand-logo">
+        <svg viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <path d="M10 2L3 5v5c0 4.418 3.134 8.045 7 8.944C13.866 18.045 17 14.418 17 10V5L10 2z" stroke="#4a8fff"
+            stroke-width="1.4" stroke-linejoin="round" />
+          <path d="M7 10l2 2 4-4" stroke="#4a8fff" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+        </svg>
+      </div>
+      <span class="brand-name">NAC SYSTEM</span>
+      <span class="brand-tag">v2.0</span>
+    </div>
+    <div class="header-status">
+      <span class="svc-dot">Listener :8000</span>
+      <span class="svc-dot">PDP :8001</span>
+      <span class="svc-dot">Action :8002</span>
+    </div>
+    <div class="header-time" id="headerClock"></div>
+  </header>
+
+  <div class="toolbar">
+    <div class="search-wrap">
+      <svg viewBox="0 0 13 13" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="5.5" cy="5.5" r="4" stroke="currentColor" stroke-width="1.3" />
+        <path d="M9 9l2.5 2.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+      </svg>
+      <input type="text" id="search" placeholder="MAC address, IP, hostname, username…" />
+    </div>
+
+    <select id="stateFilter">
+      <option value="">All states</option>
+      <option value="COMPLIANT">COMPLIANT</option>
+      <option value="NON_COMPLIANT">NON_COMPLIANT</option>
+      <option value="EVALUATING">EVALUATING</option>
+      <option value="ISOLATED">ISOLATED</option>
+      <option value="LOGGED_OFF">LOGGED_OFF</option>
+    </select>
+
+    <div class="sep"></div>
+
+    <button class="btn btn-primary" id="refreshBtn" onclick="doRefresh()">
+      <svg class="refresh-ico" width="12" height="12" viewBox="0 0 12 12" fill="none">
+        <path d="M10 5A4 4 0 1 0 9 8.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+        <path d="M10 3v2.5H7.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+          stroke-linejoin="round" />
+      </svg>
+      <div class="spin-el"></div>
+      Refresh
+    </button>
+
+    <div class="toolbar-stats">
+      <span class="stat c-white"><strong id="sTotal">—</strong>&nbsp;total</span>
+      <span class="stat c-green"><strong id="sComp">—</strong>&nbsp;compliant</span>
+      <span class="stat c-yellow"><strong id="sNonComp">—</strong>&nbsp;non-compliant</span>
+      <span class="stat c-red"><strong id="sIso">—</strong>&nbsp;isolated</span>
+      <div class="sep"></div>
+      <span class="updated">Updated <span id="lastUpdate">—</span></span>
+    </div>
+  </div>
+
+  <main>
+    <div class="pane">
+      <div class="pane-header">
+        <span class="pane-title">Network Topology</span>
+        <span class="pane-count" id="topoCount"></span>
+      </div>
+      <div class="pane-body" id="topology">
+        <div class="empty">Loading…</div>
+      </div>
+    </div>
+
+    <div class="pane">
+      <div class="pane-header">
+        <span class="pane-title">Device Inventory</span>
+        <span class="pane-count" id="devCount"></span>
+      </div>
+      <div class="pane-body" style="padding:0; overflow-x:hidden;">
+        <div class="table-wrap" id="deviceTable">
+          <div class="empty">Loading…</div>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <div class="overlay" id="overlay" onclick="closeDrawer()"></div>
+
+  <div class="drawer" id="drawer">
+    <div class="dh">
+      <div class="dh-left">
+        <div class="dh-name" id="dName">—</div>
+        <div class="dh-mac" id="dMac">—</div>
+        <div class="dh-state" id="dState"></div>
+      </div>
+      <button class="close-btn" onclick="closeDrawer()">
+        <svg width="10" height="10" viewBox="0 0 10 10" fill="none">
+          <path d="M1 1l8 8M9 1L1 9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+        </svg>
+      </button>
+    </div>
+
+    <div class="action-bar">
+      <button class="act act-release" onclick="deviceAction('release')">Release</button>
+      <button class="act act-restrict" onclick="deviceAction('restrict')">Restrict</button>
+      <button class="act act-isolate" onclick="deviceAction('isolate')">Isolate</button>
+      <button class="act act-netflow" onclick="fetchNetflow()">Netflow</button>
+      <div id="actionStatus"></div>
+    </div>
+
+    <div class="d-scroll" id="dBody"></div>
+  </div>
+
+  <script>
+    let devices = [], selDev = null;
+
+    function esc(v) {
+      return String(v ?? '').replace(/[&<>'"]/g,
+        c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[c]);
+    }
+
+    function sk(v) { return String(v || '').replace(/[^A-Z0-9_-]/g, '_'); }
+
+    function dot(state) {
+      const m = { COMPLIANT: 'green', NON_COMPLIANT: 'yellow', EVALUATING: 'yellow', ISOLATED: 'red', LOGGED_OFF: 'gray' };
+      return `<span class="dot dot-${m[state] || 'gray'}"></span>`;
+    }
+
+    function badge(state) {
+      return `<span class="badge b-${sk(state)}">${dot(state)}${esc(state || '—')}</span>`;
+    }
+
+    function risk(d) {
+      const score = d.total_score ?? 0;
+      const level = (d.risk_level || 'LOW').toUpperCase();
+      return `<div class="risk-row rl-${level}">
+            <div class="risk-track"><div class="risk-fill" style="width:${Math.min(100, score)}%"></div></div>
+            <span class="risk-val">${score}</span>
+        </div>`;
+    }
+
+    /* clock */
+    function tick() {
+      document.getElementById('headerClock').textContent =
+        new Date().toLocaleTimeString('vi-VN', { hour12: false });
+    }
+    tick(); setInterval(tick, 1000);
+
+    /* stats */
+    function updateStats() {
+      document.getElementById('sTotal').textContent = devices.length;
+      document.getElementById('sComp').textContent = devices.filter(d => d.state === 'COMPLIANT').length;
+      document.getElementById('sNonComp').textContent = devices.filter(d => d.state === 'NON_COMPLIANT').length;
+      document.getElementById('sIso').textContent = devices.filter(d => d.state === 'ISOLATED').length;
+    }
+
+    /* load */
+    async function loadDevices() {
+      const q = document.getElementById('search').value.trim();
+      const s = document.getElementById('stateFilter').value;
+      const p = new URLSearchParams({ limit: '200' });
+      if (q) p.set('q', q);
+      if (s) p.set('state', s);
+      try {
+        const res = await fetch(`/devices?${p}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        devices = data.items || [];
+        renderTopology();
+        renderTable();
+        updateStats();
+        document.getElementById('lastUpdate').textContent =
+          new Date().toLocaleTimeString('vi-VN', { hour12: false });
+      } catch (err) {
+        const msg = `<div class="err-box">Failed to load: ${esc(err.message)}</div>`;
+        document.getElementById('topology').innerHTML = `<div style="padding:12px">${msg}</div>`;
+        document.getElementById('deviceTable').innerHTML = `<div style="padding:12px">${msg}</div>`;
+      }
+    }
+
+    function doRefresh() {
+      const btn = document.getElementById('refreshBtn');
+      btn.classList.add('loading');
+      loadDevices().finally(() => setTimeout(() => btn.classList.remove('loading'), 350));
+    }
+
+    /* topology */
+    const infra = [
+      { name: 'Firewall', info: 'VyOS · perimeter' },
+      { name: 'Core Switch', info: 'Access switching' },
+      { name: 'PacketFence', info: 'NAC · role enforcement' },
+      { name: 'Windows Server', info: 'AD · DNS · DHCP' },
+      { name: 'Wazuh', info: 'SIEM · posture' },
+    ];
+
+    function renderTopology() {
+      let html = `<div class="topo-group">
+            <div class="topo-label">Infrastructure</div>
+            <div class="node-grid">`;
+      infra.forEach(n => {
+        html += `<div class="node">
+                <div class="node-name">${esc(n.name)}</div>
+                <div class="node-info">${esc(n.info)}</div>
+            </div>`;
+      });
+      html += '</div></div>';
+
+      const bySw = new Map(), unknown = [];
+      devices.forEach(d => {
+        if (d.switch_ip) {
+          if (!bySw.has(d.switch_ip)) bySw.set(d.switch_ip, []);
+          bySw.get(d.switch_ip).push(d);
+        } else { unknown.push(d); }
+      });
+
+      for (const [sw, list] of bySw) {
+        html += `<div class="topo-group">
+                <div class="topo-label">Switch · ${esc(sw)}</div>
+                <div class="node-grid">${list.map(epNode).join('')}</div>
+            </div>`;
+      }
+
+      if (unknown.length) {
+        html += `<div class="topo-group">
+                <div class="topo-label">Unknown segment</div>
+                <div class="node-grid">${unknown.map(epNode).join('')}</div>
+            </div>`;
+      }
+
+      if (!devices.length) html += '<div class="empty">No devices found.</div>';
+
+      document.getElementById('topology').innerHTML = html;
+      document.getElementById('topoCount').textContent = `${devices.length} nodes`;
+    }
+
+    function epNode(d) {
+      return `<div class="node s-${sk(d.state)}" data-id="${esc(d.device_id)}">
+            <div class="node-name">${esc(d.hostname || d.ip_address || d.device_id)}</div>
+            <div class="node-info">${esc(d.ip_address || '—')}<br>port: ${esc(d.switch_port || '—')}</div>
+            <div class="node-state">${dot(d.state)}<span>${esc(d.state || '—')}</span></div>
+        </div>`;
+    }
+
+    /* table */
+    function renderTable() {
+      const el = document.getElementById('deviceTable');
+      if (!devices.length) {
+        el.innerHTML = '<div class="empty">No devices match the current filter.</div>';
+        document.getElementById('devCount').textContent = '';
+        return;
+      }
+
+      const rows = devices.map(d => {
+        // Rút gọn tên OS (Lấy 2 từ đầu tiên để tránh quá dài)
+        const osShort = (d.operating_system || 'Unknown').split(' ').slice(0, 2).join(' ');
+
+        return `<tr data-id="${esc(d.device_id)}">
+            <td>
+                <div class="td-main">${esc(d.hostname || '—')}</div>
+                <div class="td-sub">${esc(d.device_id)}</div>
+            </td>
+            <td class="td-mono">${esc(d.ip_address || '—')}</td>
+            <td>
+                <span class="os-text">${esc(osShort)}</span>
+            </td>
+            <td>
+                <div class="td-mono">${esc(d.switch_ip || '—')}</div>
+                <div class="td-sub">Port: ${esc(d.switch_port || '—')}</div>
+            </td>
+            <td>${badge(d.state)}</td>
+            <td>
+                <div style="font-size:11.5px; margin-bottom:6px; color: var(--text)">${esc(d.current_role || '—')}</div>
+                ${risk(d)}
+            </td>
+        </tr>`}).join('');
+
+      el.innerHTML = `<table>
+            <thead><tr>
+                <th>Hostname / MAC</th>
+                <th>IP Address</th>
+                <th>OS</th>
+                <th>Switch Details</th>
+                <th>State</th>
+                <th>Role & Risk</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+        </table>`;
+
+      document.getElementById('devCount').textContent = `${devices.length} devices`;
+    }
+
+    /* drawer */
+    async function openDevice(mac) {
+      selDev = devices.find(d => d.device_id === mac);
+      if (!selDev) return;
+      document.getElementById('dName').textContent = selDev.hostname || selDev.device_id;
+      document.getElementById('dMac').textContent = selDev.device_id;
+      document.getElementById('dState').innerHTML = badge(selDev.state);
+      document.getElementById('drawer').classList.add('open');
+      document.getElementById('overlay').classList.add('open');
+      const st = document.getElementById('actionStatus');
+      st.className = ''; st.innerHTML = '';
+      renderDrawer([]);
+
+      try {
+        const res = await fetch(`/devices/${encodeURIComponent(mac)}/audit-logs?limit=20`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+        renderDrawer(data.items || []);
+      } catch (err) {
+        renderDrawer([], `Failed to load audit logs: ${err.message}`);
+      }
+    }
+
+    function renderDrawer(logs, errMsg) {
+      const d = selDev;
+      const fields = [
+        ['IP Address', d.ip_address, true],
+        ['Hostname', d.hostname, false],
+        ['OS', d.operating_system, false],
+        ['Username', d.username, false],
+        ['Current role', d.current_role, true],
+        ['Actual role', d.actual_role, true],
+        ['Switch', d.switch_ip, true],
+        ['Port', d.switch_port, true],
+        ['Topo source', d.topology_source, true],
+        ['SCA score', d.sca_score, true],
+        ['Firewall', d.firewall_enabled, false],
+        ['Antivirus', d.antivirus_enabled, false],
+        ['Risk', `${d.total_score ?? 0} · ${d.risk_level || 'UNKNOWN'}`, true],
+      ];
+
+      let html = `<div class="d-section">
+            <div class="d-section-title">Device Details</div>
+            <div class="kv-grid">`;
+      fields.forEach(([k, v, mono]) => {
+        html += `<div class="kv-key">${esc(k)}</div>
+                     <div class="kv-val${mono ? ' mono' : ''}">${esc(v ?? '—')}</div>`;
+      });
+      html += `</div></div>`;
+
+      html += `<div class="d-section">
+            <div class="d-section-title">Audit Log</div>`;
+      if (errMsg) {
+        html += `<div class="err-box">${esc(errMsg)}</div>`;
+      } else if (!logs.length) {
+        html += `<div class="empty" style="padding:16px 0">No audit log entries.</div>`;
+      } else {
+        html += logs.map(l => `<div class="audit-card">
+                <div class="audit-top">
+                    <span class="audit-action">${esc(l.action || '—')}</span>
+                    <span class="audit-src">${esc(l.event_source || '—')}</span>
+                </div>
+                <div class="audit-meta">
+                    <span>${esc(l.changed_at || '—')}</span>
+                    <span>event: ${esc(l.event_id || '—')}</span>
+                    <span>level: ${esc(l.level || '—')}</span>
+                    <span>role: ${esc(l.role || '—')}</span>
+                </div>
+                ${l.reason ? `<div class="audit-reason">${esc(l.reason)}</div>` : ''}
+            </div>`).join('');
+      }
+      html += `</div>`;
+
+      html += `<div class="d-section">
+            <div class="d-section-title">Network Activity · Last 5 min</div>
+            <div id="netflowArea"><div class="empty" style="padding:12px 0">Click Netflow to load connections.</div></div>
+        </div>`;
+
+      document.getElementById('dBody').innerHTML = html;
+    }
+
+    function closeDrawer() {
+      document.getElementById('drawer').classList.remove('open');
+      document.getElementById('overlay').classList.remove('open');
+    }
+
+    function setStatus(msg, type) {
+      const el = document.getElementById('actionStatus');
+      el.className = type;
+      el.innerHTML = type === 'pending'
+        ? `<span class="status-spin"></span>${esc(msg)}`
+        : esc(msg);
+    }
+
+    async function deviceAction(action) {
+      if (!selDev) return;
+      const labels = { release: 'Release device', restrict: 'Restrict device', isolate: 'Isolate device' };
+      if (!confirm(`${labels[action] || action}?`)) return;
+      setStatus(`${action}…`, 'pending');
+      try {
+        const res = await fetch(`/devices/${encodeURIComponent(selDev.device_id)}/${action}`, { method: 'POST' });
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
+        setStatus(`${action} completed`, 'success');
+        await loadDevices();
+        await openDevice(selDev.device_id);
+      } catch (err) {
+        setStatus(`${action} failed: ${err.message}`, 'error');
+      }
+    }
+
+    async function fetchNetflow() {
+      if (!selDev) return;
+      const area = document.getElementById('netflowArea');
+      if (!area) return;
+      setStatus('Loading connections…', 'pending');
+      area.innerHTML = '<div class="empty" style="padding:12px 0">Loading…</div>';
+      try {
+        const res = await fetch(`/devices/${encodeURIComponent(selDev.device_id)}/netflow?minutes=5`);
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) throw new Error(data.detail || `HTTP ${res.status}`);
+        const conns = data.connections || [];
+        if (!conns.length) {
+          area.innerHTML = '<div class="empty" style="padding:12px 0">No connections in the last 5 minutes.</div>';
+        } else {
+          const rows = conns.map(c => `<tr>
+                    <td class="td-mono">${esc(c.dst_ip)}:${esc(c.dst_port)}</td>
+                    <td style="font-family:var(--mono);font-size:11px">${esc(c.protocol)}</td>
+                    <td style="font-family:var(--mono);font-size:11px;text-align:right">${esc(c.bytes_formatted)}</td>
+                </tr>`).join('');
+          area.innerHTML = `<table class="netflow-table">
+                    <thead><tr><th>Destination IP:Port</th><th>Protocol</th><th style="text-align:right">Bytes</th></tr></thead>
+                    <tbody>${rows}</tbody>
+                </table>`;
+        }
+        setStatus(`${conns.length} connections loaded`, 'success');
+      } catch (err) {
+        area.innerHTML = `<div class="err-box">${esc(err.message)}</div>`;
+        setStatus(`Netflow failed: ${err.message}`, 'error');
+      }
+    }
+
+    document.getElementById('topology').addEventListener('click', e => {
+      const n = e.target.closest('[data-id]');
+      if (n) openDevice(n.dataset.id);
+    });
+
+    document.getElementById('deviceTable').addEventListener('click', e => {
+      const r = e.target.closest('[data-id]');
+      if (r) openDevice(r.dataset.id);
+    });
+
+    document.getElementById('search').addEventListener('keydown', e => {
+      if (e.key === 'Enter') doRefresh();
+    });
+
+    document.getElementById('stateFilter').addEventListener('change', loadDevices);
+
+    document.addEventListener('keydown', e => {
+      if (e.key === 'Escape') closeDrawer();
+      if ((e.key === 'r' || e.key === 'R') && !e.target.matches('input,select,textarea')) doRefresh();
+    });
+
+    loadDevices();
+    setInterval(loadDevices, 15000);
+  </script>
+</body>
+
+</html>

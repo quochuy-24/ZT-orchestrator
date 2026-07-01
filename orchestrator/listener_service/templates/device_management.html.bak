@@ -1,0 +1,416 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NAC Device Management</title>
+    <style>
+        :root {
+            --bg: #0f172a;
+            --panel: #111827;
+            --panel-2: #1f2937;
+            --border: #334155;
+            --text: #e5e7eb;
+            --muted: #94a3b8;
+            --green: #22c55e;
+            --yellow: #f59e0b;
+            --red: #ef4444;
+            --blue: #3b82f6;
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+            background: var(--bg);
+            color: var(--text);
+        }
+        header {
+            padding: 18px 24px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        h1 { margin: 0; font-size: 22px; }
+        .subtitle { color: var(--muted); font-size: 13px; margin-top: 4px; }
+        .toolbar { display: flex; gap: 10px; align-items: center; }
+        input, select, button {
+            background: var(--panel-2);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 9px 11px;
+        }
+        button { cursor: pointer; background: #2563eb; border-color: #2563eb; }
+        button:hover { background: #1d4ed8; }
+        main {
+            display: grid;
+            grid-template-columns: 1.3fr 1fr;
+            gap: 16px;
+            padding: 16px;
+        }
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        .card h2 {
+            margin: 0;
+            padding: 14px 16px;
+            font-size: 16px;
+            border-bottom: 1px solid var(--border);
+        }
+        .topology {
+            min-height: 520px;
+            padding: 18px;
+        }
+        .infra-row, .endpoint-row {
+            display: flex;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-bottom: 22px;
+        }
+        .node {
+            min-width: 130px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            background: var(--panel-2);
+            cursor: pointer;
+        }
+        .node:hover { border-color: var(--blue); }
+        .node-title { font-weight: 700; margin-bottom: 6px; }
+        .node-meta { color: var(--muted); font-size: 12px; line-height: 1.4; }
+        .infra { border-color: #475569; }
+        .state-COMPLIANT { border-color: var(--green); }
+        .state-NON_COMPLIANT, .state-EVALUATING { border-color: var(--yellow); }
+        .state-ISOLATED { border-color: var(--red); }
+        .section-label { color: var(--muted); font-size: 12px; margin: 18px 0 8px; text-transform: uppercase; letter-spacing: .08em; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; font-size: 13px; }
+        th { color: var(--muted); font-weight: 600; }
+        tr { cursor: pointer; }
+        tr:hover { background: rgba(59, 130, 246, .08); }
+        .badge { padding: 3px 7px; border-radius: 999px; font-size: 12px; border: 1px solid var(--border); }
+        .drawer {
+            position: fixed;
+            right: 0;
+            top: 0;
+            width: 460px;
+            max-width: 100vw;
+            height: 100vh;
+            background: #020617;
+            border-left: 1px solid var(--border);
+            transform: translateX(100%);
+            transition: transform .2s;
+            overflow-y: auto;
+            z-index: 10;
+        }
+        .drawer.open { transform: translateX(0); }
+        .drawer-header { display: flex; justify-content: space-between; align-items: center; padding: 16px; border-bottom: 1px solid var(--border); }
+        .drawer-body { padding: 16px; }
+        .kv { display: grid; grid-template-columns: 135px 1fr; gap: 8px; font-size: 13px; margin-bottom: 8px; }
+        .kv span:first-child { color: var(--muted); }
+        .audit-item { border: 1px solid var(--border); border-radius: 10px; padding: 10px; margin-bottom: 8px; background: var(--panel); }
+        .audit-time { color: var(--muted); font-size: 12px; }
+        .drawer-actions { display: flex; gap: 8px; margin: 0 0 16px; }
+        .btn-release { background: #16a34a; border-color: #16a34a; }
+        .btn-release:hover { background: #15803d; }
+        .btn-restrict { background: #d97706; border-color: #d97706; }
+        .btn-restrict:hover { background: #b45309; }
+        .btn-isolate { background: #dc2626; border-color: #dc2626; }
+        .btn-isolate:hover { background: #b91c1c; }
+        .btn-netflow { background: #3b82f6; border-color: #3b82f6; }
+        .btn-netflow:hover { background: #2563eb; }
+        .netflow-table { margin-top: 12px; font-size: 13px; }
+        .netflow-table th { background: var(--panel-2); }
+        .action-status { color: var(--muted); font-size: 13px; margin-bottom: 12px; }
+        .action-status.error { color: #fca5a5; padding: 0; }
+        .action-status.success { color: #86efac; }
+        .empty, .error { color: var(--muted); padding: 16px; }
+        .error { color: #fca5a5; }
+        @media (max-width: 1000px) { main { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+<header>
+    <div>
+        <h1>NAC Device Management</h1>
+        <div class="subtitle">Topology, inventory, audit logs, and device actions</div>
+    </div>
+    <div class="toolbar">
+        <input id="search" placeholder="MAC, IP, hostname, user" />
+        <select id="stateFilter">
+            <option value="">All states</option>
+            <option value="EVALUATING">EVALUATING</option>
+            <option value="COMPLIANT">COMPLIANT</option>
+            <option value="NON_COMPLIANT">NON_COMPLIANT</option>
+            <option value="ISOLATED">ISOLATED</option>
+            <option value="LOGGED_OFF">LOGGED_OFF</option>
+        </select>
+        <button onclick="loadDevices()">Refresh</button>
+    </div>
+</header>
+<main>
+    <section class="card">
+        <h2>Network Topology</h2>
+        <div class="topology" id="topology"></div>
+    </section>
+    <section class="card">
+        <h2>Devices</h2>
+        <div id="deviceTable"></div>
+    </section>
+</main>
+<div class="drawer" id="drawer">
+    <div class="drawer-header">
+        <strong id="drawerTitle">Device</strong>
+        <button onclick="closeDrawer()">Close</button>
+    </div>
+    <div class="drawer-body" id="drawerBody"></div>
+</div>
+<script>
+    let devices = [];
+    let selectedDevice = null;
+
+    const staticNodes = [
+        { name: 'Firewall', meta: 'VyOS / perimeter' },
+        { name: 'Core Switch', meta: 'Access switching' },
+        { name: 'PacketFence', meta: 'NAC / role enforcement' },
+        { name: 'Windows Server', meta: 'AD / DNS / DHCP' },
+        { name: 'Wazuh', meta: 'SIEM / posture / alerts' }
+    ];
+
+    function escapeHtml(value) {
+        return String(value ?? '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c]));
+    }
+
+    function stateClass(value) {
+        return String(value || '').replace(/[^A-Z0-9_-]/g, '_');
+    }
+
+    async function loadDevices() {
+        const q = document.getElementById('search').value.trim();
+        const state = document.getElementById('stateFilter').value;
+        const params = new URLSearchParams({ limit: '200' });
+        if (q) params.set('q', q);
+        if (state) params.set('state', state);
+
+        try {
+            const response = await fetch(`/devices?${params}`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            devices = data.items || [];
+            renderTopology();
+            renderDeviceTable();
+        } catch (error) {
+            document.getElementById('topology').innerHTML = `<div class="error">Failed to load devices: ${escapeHtml(error.message)}</div>`;
+            document.getElementById('deviceTable').innerHTML = `<div class="error">Failed to load devices</div>`;
+        }
+    }
+
+    function renderTopology() {
+        const bySwitch = new Map();
+        const unknown = [];
+        devices.forEach(device => {
+            if (device.switch_ip) {
+                if (!bySwitch.has(device.switch_ip)) bySwitch.set(device.switch_ip, []);
+                bySwitch.get(device.switch_ip).push(device);
+            } else {
+                unknown.push(device);
+            }
+        });
+
+        let html = '<div class="section-label">Static infrastructure</div><div class="infra-row">';
+        html += staticNodes.map(node => `<div class="node infra"><div class="node-title">${escapeHtml(node.name)}</div><div class="node-meta">${escapeHtml(node.meta)}</div></div>`).join('');
+        html += '</div>';
+
+        for (const [switchIp, switchDevices] of bySwitch.entries()) {
+            html += `<div class="section-label">Switch ${escapeHtml(switchIp)}</div><div class="endpoint-row">`;
+            html += switchDevices.map(renderEndpointNode).join('');
+            html += '</div>';
+        }
+
+        if (unknown.length) {
+            html += '<div class="section-label">Unknown segment</div><div class="endpoint-row">';
+            html += unknown.map(renderEndpointNode).join('');
+            html += '</div>';
+        }
+
+        if (!devices.length) html += '<div class="empty">No devices found.</div>';
+        document.getElementById('topology').innerHTML = html;
+    }
+
+    function renderEndpointNode(device) {
+        return `<div class="node state-${stateClass(device.state)}" data-device-id="${escapeHtml(device.device_id)}">
+            <div class="node-title">${escapeHtml(device.hostname || device.ip_address || device.device_id)}</div>
+            <div class="node-meta">
+                ${escapeHtml(device.ip_address || '-') }<br>
+                ${escapeHtml(device.operating_system || 'Unknown OS')}<br>
+                ${escapeHtml(device.switch_port || 'Unknown port')}<br>
+                ${escapeHtml(device.state || '-')}
+            </div>
+        </div>`;
+    }
+
+    function renderDeviceTable() {
+        if (!devices.length) {
+            document.getElementById('deviceTable').innerHTML = '<div class="empty">No devices found.</div>';
+            return;
+        }
+        const rows = devices.map(device => `<tr data-device-id="${escapeHtml(device.device_id)}">
+            <td>${escapeHtml(device.hostname || '-')}<br><span class="node-meta">${escapeHtml(device.device_id)}</span></td>
+            <td>${escapeHtml(device.ip_address || '-')}</td>
+            <td>${escapeHtml(device.operating_system || '-')}</td>
+            <td>${escapeHtml(device.switch_ip || '-')}<br><span class="node-meta">${escapeHtml(device.switch_port || '-')}</span></td>
+            <td><span class="badge">${escapeHtml(device.state || '-')}</span></td>
+            <td>${escapeHtml(device.current_role || '-')}<br><span class="node-meta">risk ${escapeHtml(device.total_score ?? 0)}</span></td>
+        </tr>`).join('');
+        document.getElementById('deviceTable').innerHTML = `<table>
+            <thead><tr><th>Device</th><th>IP</th><th>OS</th><th>Switch/Port</th><th>State</th><th>Role/Risk</th></tr></thead>
+            <tbody>${rows}</tbody>
+        </table>`;
+    }
+
+    async function openDevice(mac) {
+        selectedDevice = devices.find(device => device.device_id === mac);
+        if (!selectedDevice) return;
+        document.getElementById('drawerTitle').textContent = selectedDevice.hostname || selectedDevice.device_id;
+        document.getElementById('drawer').classList.add('open');
+        renderDrawer([]);
+
+        try {
+            const response = await fetch(`/devices/${encodeURIComponent(mac)}/audit-logs?limit=20`);
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            const data = await response.json();
+            renderDrawer(data.items || []);
+        } catch (error) {
+            renderDrawer([], `Failed to load audit logs: ${error.message}`);
+        }
+    }
+
+    function renderDrawer(auditLogs, errorMessage) {
+        const d = selectedDevice;
+        const details = [
+            ['MAC', d.device_id], ['IP', d.ip_address], ['Hostname', d.hostname], ['OS', d.operating_system],
+            ['State', d.state], ['Current role', d.current_role], ['Actual role', d.actual_role], ['Username', d.username],
+            ['Switch', d.switch_ip], ['Port', d.switch_port], ['Topology source', d.topology_source],
+            ['SCA score', d.sca_score], ['Firewall', d.firewall_enabled], ['Antivirus', d.antivirus_enabled],
+            ['Risk', `${d.total_score ?? 0} (${d.risk_level || 'UNKNOWN'})`]
+        ];
+        let html = `<div class="drawer-actions">
+            <button class="btn-release" onclick="performDeviceAction('release')">Release</button>
+            <button class="btn-restrict" onclick="performDeviceAction('restrict')">Restrict</button>
+            <button class="btn-isolate" onclick="performDeviceAction('isolate')">Isolate</button>
+            <button class="btn-netflow" onclick="fetchNetflowData()">Netflow</button>
+        </div><div id="actionStatus" class="action-status"></div>`;
+        html += '<h3>Details</h3>' + details.map(([k, v]) => `<div class="kv"><span>${escapeHtml(k)}</span><span>${escapeHtml(v ?? '-')}</span></div>`).join('');
+        html += '<h3>Audit logs</h3>';
+        if (errorMessage) html += `<div class="error">${escapeHtml(errorMessage)}</div>`;
+        else if (!auditLogs.length) html += '<div class="empty">No audit logs.</div>';
+        else html += auditLogs.map(log => `<div class="audit-item">
+            <div><strong>${escapeHtml(log.action || '-')}</strong> <span class="badge">${escapeHtml(log.event_source || '-')}</span></div>
+            <div class="audit-time">${escapeHtml(log.changed_at || '-')}</div>
+            <div class="node-meta">event=${escapeHtml(log.event_id || '-')} level=${escapeHtml(log.level || '-')} role=${escapeHtml(log.role || '-')}</div>
+            <div>${escapeHtml(log.reason || '')}</div>
+        </div>`).join('');
+        html += '<h3>Network Activity (Last 5 Min)</h3>';
+        html += '<div id="netflowContainer"><div class="empty">Click Netflow button to load</div></div>';
+        document.getElementById('drawerBody').innerHTML = html;
+    }
+
+    async function performDeviceAction(action) {
+        if (!selectedDevice) return;
+        const mac = selectedDevice.device_id;
+        const labelMap = {
+            release: 'release this device to actual role',
+            restrict: 'move this device to restricted role',
+            isolate: 'isolate this device with security event',
+        };
+        if (!confirm(`Confirm ${labelMap[action] || action}?`)) return;
+
+        const status = document.getElementById('actionStatus');
+        status.className = 'action-status';
+        status.textContent = `${action} in progress...`;
+
+        try {
+            const response = await fetch(`/devices/${encodeURIComponent(mac)}/${action}`, { method: 'POST' });
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(data.detail || `HTTP ${response.status}`);
+            status.className = 'action-status success';
+            status.textContent = `${action} completed`;
+            await loadDevices();
+            await openDevice(mac);
+        } catch (error) {
+            status.className = 'action-status error';
+            status.textContent = `${action} failed: ${error.message}`;
+        }
+    }
+
+
+    async function fetchNetflowData() {
+        if (!selectedDevice) return;
+        const mac = selectedDevice.device_id;
+
+        const status = document.getElementById('actionStatus');
+        const container = document.getElementById('netflowContainer');
+        status.className = 'action-status';
+        status.textContent = 'Loading network connections...';
+        container.innerHTML = '<div class="empty">Loading...</div>';
+
+        try {
+            const response = await fetch(`/devices/${encodeURIComponent(mac)}/netflow?minutes=5`);
+            const data = await response.json().catch(() => ({}));
+            if (!response.ok) throw new Error(data.detail || `HTTP ${response.status}`);
+
+            displayNetflowData(data.connections || []);
+            status.className = 'action-status success';
+            status.textContent = `Loaded ${data.connections.length} connections`;
+        } catch (error) {
+            container.innerHTML = `<div class="error">Failed to load netflow: ${escapeHtml(error.message)}</div>`;
+            status.className = 'action-status error';
+            status.textContent = `Netflow failed: ${error.message}`;
+        }
+    }
+
+    function displayNetflowData(connections) {
+        const container = document.getElementById('netflowContainer');
+        if (!connections.length) {
+            container.innerHTML = '<div class="empty">No network connections found in last 5 minutes.</div>';
+            return;
+        }
+
+        const rows = connections.map(conn => `<tr>
+            <td>${escapeHtml(conn.dst_ip)}:${escapeHtml(conn.dst_port)}</td>
+            <td><span class="badge">${escapeHtml(conn.protocol)}</span></td>
+            <td style="text-align: right">${escapeHtml(conn.bytes_formatted)}</td>
+        </tr>`).join('');
+
+        container.innerHTML = `<table class="netflow-table">
+            <thead><tr><th>Destination (IP:Port)</th><th>Protocol</th><th>Total Bytes</th></tr></thead>
+            <tbody>${rows}</tbody>
+        </table>`;
+    }
+
+
+    function closeDrawer() {
+        document.getElementById('drawer').classList.remove('open');
+    }
+
+    document.getElementById('topology').addEventListener('click', event => {
+        const node = event.target.closest('[data-device-id]');
+        if (node) openDevice(node.dataset.deviceId);
+    });
+    document.getElementById('deviceTable').addEventListener('click', event => {
+        const row = event.target.closest('[data-device-id]');
+        if (row) openDevice(row.dataset.deviceId);
+    });
+    document.getElementById('search').addEventListener('keydown', event => {
+        if (event.key === 'Enter') loadDevices();
+    });
+    document.getElementById('stateFilter').addEventListener('change', loadDevices);
+    loadDevices();
+    setInterval(loadDevices, 15000);
+</script>
+</body>
+</html>

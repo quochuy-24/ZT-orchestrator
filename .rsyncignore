@@ -1,0 +1,45 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+env/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+.gitignore
+
+# Logs
+*.log
+
+# Test files
+test_*.json
+*.md
+clean_sca_output.json
+filter_sca.py
+get_netflow_for_profile_plan.md
+jit_access.md
+WORKFLOW_TEST.md
+
+# Claude
+.claude/
+
+# JIT Portal (không cần deploy)
+jit_portal/
+
+# Profiles (sẽ tạo mới trên server)
+profiles.json
