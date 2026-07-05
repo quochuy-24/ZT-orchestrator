@@ -22,11 +22,11 @@ def calculate_risk_penalty(rule_level: int, rule_id: str) -> int:
 
 
 def calculate_risk_level(total_score: int) -> str:
-    if total_score > RISK_THRESHOLDS["isolate"]:
+    if total_score >= RISK_THRESHOLDS["isolate"]:
         return "CRITICAL"
-    if total_score > RISK_THRESHOLDS["restrict"]:
+    if total_score >= RISK_THRESHOLDS["restrict"]:
         return "HIGH"
-    if total_score > RISK_THRESHOLDS["medium"]:
+    if total_score >= RISK_THRESHOLDS["medium"]:
         return "MEDIUM"
     if total_score > 0:
         return "LOW"
