@@ -174,11 +174,9 @@ Wazuh sends security alert unrelated to normal login posture.
 
 | Risk score | Risk level | Action |
 | ---: | --- | --- |
-| 0 | `UNKNOWN` | no action |
-| 1-30 | `LOW` | no action |
-| 31-60 | `MEDIUM` | no action / JIT denied |
-| 61-80 | `HIGH` | restrict role |
-| 81+ | `CRITICAL` | isolate device |
+| 0-59 | `MEDIUM` | no action / JIT denied |
+| 60-79 | `HIGH` | restrict role |
+| 80+ | `CRITICAL` | isolate device |
 
 ### Result
 
